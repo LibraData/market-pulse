@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="A 股市场温度计：从指数强度、涨跌广度、成交量能与均线位置观察市场情绪。每日更新的纯前端数据分析作品。">
+  <meta name="theme-color" content="#101b28">
+  <title>A 股市场温度计 · Market Pulse</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0b131e;--panel:#121e2c;--line:#263447;--text:#eef3f7;--muted:#a4b2c4;--mint:#75ddbd;--red:#f18b92;--blue:#95b6ff;--amber:#efd093}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.65}
+    a{color:var(--mint);text-underline-offset:4px}button{font:inherit}a:focus-visible,summary:focus-visible{outline:2px solid var(--mint);outline-offset:5px}
+    .wrap{width:min(1160px,100% - 64px);margin:auto}.topbar{border-bottom:1px solid var(--line)}.topbar .wrap{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:24px 0}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--text)}.brand svg{width:38px;height:38px}.brand strong{font-size:16px}.brand small{display:block;font-size:10px;letter-spacing:2px;color:var(--muted)}nav{display:flex;gap:24px}nav a{font-size:12px;color:var(--muted);text-decoration:none}
+    main{padding:44px 0 28px}.eyebrow{font-size:11px;letter-spacing:2px;color:var(--mint);margin:0 0 12px}.intro{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:26px}.intro h1{font-size:clamp(27px,4vw,40px);line-height:1.25;letter-spacing:-1px;margin:0 0 12px}.intro p{margin:0;color:var(--muted)}.date-chip{white-space:nowrap;background:var(--panel);border:1px solid var(--line);padding:10px 16px;border-radius:8px;font-size:12px}
+    .notice{border:1px solid #4a4331;background:#27241e;color:#e9d6aa;padding:13px 17px;border-radius:8px;margin-bottom:22px;font-size:12px}.notice.error{border-color:#743d43;background:#301e26;color:#ffc7cd}[hidden]{display:none!important}
+    .overview{display:grid;grid-template-columns:1.1fr 1fr;gap:20px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:25px}.panel-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.panel-heading h2,.section-title{margin:0;font-size:16px;font-weight:600}.label{color:var(--muted);font-size:12px}.pill{padding:4px 10px;background:#213343;color:#c7d5e7;border:1px solid #36475a;border-radius:5px;font-size:11px}.score-line{display:flex;align-items:baseline;gap:14px;margin:8px 0 12px}.score{font-size:70px;line-height:1.2;letter-spacing:-3px;font-weight:600;font-variant-numeric:tabular-nums}.score-level{font-size:20px}.score-unit{font-size:12px;color:var(--muted)}
+    .thermometer{position:relative;height:9px;background:linear-gradient(90deg,#579cbe 0%,#75ddbd 30%,#b5bccc 50%,#efd093 70%,#f18b92 100%);border-radius:8px;margin:22px 0 10px}.needle{position:absolute;top:-6px;left:50%;height:21px;width:3px;border-radius:2px;background:#fff;box-shadow:0 0 0 3px #121e2c;transform:translateX(-50%)}.ticks{display:flex;justify-content:space-between;color:var(--muted);font-size:10px}.score-note{font-size:12px;color:var(--muted);margin:18px 0 0}
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}.stat-value{font-size:27px;font-weight:500;line-height:1.4;font-variant-numeric:tabular-nums}.stat-unit{font-size:11px;color:var(--muted);margin-left:4px}.stat-detail{font-size:11px;color:var(--muted);margin-top:4px}.divider{height:1px;background:var(--line);margin:20px 0}.breadth-bar{height:7px;background:#344254;border-radius:5px;display:flex;overflow:hidden;margin:10px 0}.breadth-bar span{transition:width .4s}.up-segment{background:var(--red)}.down-segment{background:var(--mint)}.flat-segment{background:#8b9aac}.breadth-legend{display:flex;flex-wrap:wrap;gap:15px;color:var(--muted);font-size:11px}.up{color:var(--red)}.down{color:var(--mint)}.neutral{color:var(--text)}
+    .indices{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0 26px}.index-card{padding:16px 20px;border:1px solid var(--line);border-radius:8px;background:#0f1a28;display:flex;justify-content:space-between;align-items:center;gap:12px}.index-card span{font-size:12px;color:var(--muted)}.index-card strong{font-weight:500;font-size:18px;font-variant-numeric:tabular-nums}
+    .chart-panel{padding-bottom:14px;margin-bottom:24px}.chart-title{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:8px}.chart-title p{margin:0;font-size:11px;color:var(--muted)}#trend-chart{height:360px;width:100%}.chart-message{padding:65px 20px;text-align:center;color:var(--muted)}.chart-footnote{color:var(--muted);font-size:11px;margin:3px 0 0}.chart-summary{font-size:12px;color:var(--muted);margin:8px 0 0}
+    .breakdown-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:18px}.breakdown-head p{margin:0;color:var(--muted);font-size:11px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;text-align:left}th{color:var(--muted);font-weight:400;font-size:11px;padding:11px 8px;border-bottom:1px solid var(--line)}td{padding:17px 8px;border-bottom:1px solid var(--line);vertical-align:top}td:first-child{width:57%}td:nth-child(n+2),th:nth-child(n+2){text-align:right;white-space:nowrap}td strong{font-size:13px;font-weight:500}.formula{display:block;font-size:11px;color:var(--muted);margin-top:4px;max-width:530px}.dimension-note{display:block;font-size:11px;color:var(--amber);margin-top:4px}.number{font-variant-numeric:tabular-nums}.table-total td{border-bottom:0;padding-bottom:0}.table-total strong{font-size:16px}
+    .methodology{margin-top:28px;padding:22px 25px;border:1px solid var(--line);border-radius:10px}summary{cursor:pointer;font-size:14px;font-weight:500}.method-content{padding-top:14px;color:var(--muted);font-size:12px}.method-content p{margin:10px 0}.method-content ul{padding-left:20px}.method-content li{margin:8px 0}.bands{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.bands span{border:1px solid var(--line);padding:4px 9px;border-radius:5px;font-size:11px}footer{padding:24px 0 32px;color:var(--muted);font-size:11px}footer p{margin:7px 0}.footer-row{display:flex;justify-content:space-between;gap:16px}.footer-row a{text-decoration:none}.loading{color:var(--muted)}
+    @media(max-width:760px){.wrap{width:calc(100% - 32px)}.topbar .wrap{padding:16px 0}.brand strong{font-size:14px}nav{gap:14px}nav a{font-size:11px}main{padding-top:28px}.intro{display:block}.intro p{font-size:12px}.date-chip{display:inline-block;margin-top:15px}.overview{grid-template-columns:1fr}.panel{padding:20px}.score{font-size:64px}.indices{grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.index-card{padding:14px 12px}.index-card strong{font-size:16px}.chart-title{align-items:flex-start;flex-direction:column;gap:4px}#trend-chart{height:310px}.breakdown-head{align-items:flex-start;flex-direction:column;gap:5px}th,td{padding-left:4px;padding-right:4px}td:first-child{width:48%}.formula,.dimension-note{font-size:10px}.methodology{padding:18px}.footer-row{flex-direction:column;gap:6px}}
+    @media(max-width:760px){.score-line{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline}.score-level{font-size:16px;white-space:nowrap}.score-unit{grid-column:1/-1}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.breadth-bar span{transition:none}}
+  </style>
+</head>
+<body>
+  <header class="topbar"><div class="wrap">
+    <a class="brand" href="./" aria-label="A 股市场温度计首页"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><rect x="1" y="1" width="38" height="38" rx="10" stroke="#344b5e"/><path d="M7 22h7l4-10 5 18 4-8h6" stroke="#75ddbd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>A 股市场温度计</strong><small>MARKET PULSE</small></div></a>
+    <nav aria-label="页面导航"><a href="#methodology">指标口径</a><a href="https://github.com/dingyu001209-pixel/market-pulse" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav>
+  </div></header>
+  <main class="wrap">
+    <div class="intro"><div><p class="eyebrow">DAILY MARKET OBSERVATORY</p><h1>给市场情绪一个刻度。</h1><p>从涨跌、广度、量能与位置，观察 A 股市场的冷暖。</p></div><div class="date-chip">数据日期 <strong id="data-date">—</strong></div></div>
+    <div id="notice" class="notice" role="status" aria-live="polite">正在读取历史记录…</div>
+    <section class="overview" aria-label="市场概览">
+      <div class="panel"><div class="panel-heading"><h2>今日市场温度</h2><span id="completeness" class="pill">等待数据</span></div><div class="score-line"><span id="score" class="score">—</span><span id="level" class="score-level">—</span><span class="score-unit">/ ±100</span></div><div class="thermometer" aria-hidden="true"><span id="needle" class="needle"></span></div><div class="ticks" aria-hidden="true"><span>−100 恐慌</span><span>−60</span><span>−20</span><span>+20</span><span>+60</span><span>过热 +100</span></div><p id="score-note" class="score-note">固定权重：强度 30% · 广度 25% · 量能 25% · 位置 20%</p></div>
+      <div class="panel"><div class="stats-grid"><div><div class="label">上证收盘</div><div><span id="sh-close" class="stat-value">—</span><span class="stat-unit">点</span></div><div id="sh-change" class="stat-detail">—</div></div><div><div class="label">沪深京 A 股成交额</div><div><span id="turnover" class="stat-value">—</span><span class="stat-unit">万亿元</span></div><div id="volume-ratio" class="stat-detail">20 日量能基准等待数据</div></div><div><div class="label">已积累记录</div><div><span id="record-count" class="stat-value">—</span><span class="stat-unit">条</span></div></div><div><div class="label">连续记录</div><div><span id="streak" class="stat-value">—</span><span class="stat-unit">个交易日</span></div></div></div><div class="divider"></div><div class="label">涨跌分布 <span id="active-count"></span></div><div class="breadth-bar" aria-hidden="true"><span id="up-bar" class="up-segment"></span><span id="down-bar" class="down-segment"></span><span id="flat-bar" class="flat-segment"></span></div><div class="breadth-legend"><span class="up">上涨 <strong id="up-count">—</strong></span><span class="down">下跌 <strong id="down-count">—</strong></span><span>平盘 <strong id="flat-count">—</strong></span></div></div>
+    </section>
+    <section id="indices" class="indices" aria-label="四大指数涨跌幅"></section>
+    <section class="panel chart-panel" aria-labelledby="trend-title"><div class="chart-title"><h2 id="trend-title" class="section-title">情绪分与上证走势</h2><p>左轴：情绪分 · 右轴：上证收盘点位</p></div><div id="trend-chart" role="img" aria-label="等待加载情绪分和上证指数历史走势"><div class="chart-message">正在加载图表…</div></div><p id="chart-summary" class="chart-summary"></p><p class="chart-footnote">仅展示已保存的真实记录；缺失交易日不插值。双轴曲线形状不可直接比较涨跌幅。</p></section>
+    <section class="panel" aria-labelledby="breakdown-title"><div class="breakdown-head"><h2 id="breakdown-title" class="section-title">温度从哪里来</h2><p>子分 × 固定权重 = 对总分的贡献</p></div><div class="table-wrap"><table><thead><tr><th scope="col">维度 / 当日依据</th><th scope="col">权重</th><th scope="col">子分</th><th scope="col">贡献</th></tr></thead><tbody id="breakdown-body"></tbody><tfoot class="table-total"><tr><td colspan="3"><strong>情绪分合计</strong><span id="total-note" class="formula"></span></td><td><strong id="total-score">—</strong></td></tr></tfoot></table></div></section>
+    <details id="methodology" class="methodology"><summary>指标口径与数据边界</summary><div class="method-content"><p><strong>S = 0.30 × 强度 + 0.25 × 广度 + 0.25 × 量能 + 0.20 × 位置</strong>。四项子分均限制在 −100 至 +100。</p><ul><li><strong>强度：</strong>上证、深成、创业板、沪深 300 涨跌幅中位数 ×20；涨跌 5% 对应 ±100。四指数不齐时该项缺失。</li><li><strong>广度：</strong>[上涨家数 ÷（上涨家数 + 下跌家数）−0.5] ×200。使用沪深京 A 股明细，剔除零成交股票；平盘不进入分母。</li><li><strong>量能：</strong>今日沪深京 A 股成交额 ÷ 此前 20 个交易日成交额均值 ×50，正负方向取四指数涨跌幅中位数符号。成交额比值为 1 时，方向非零的子分为 ±50；方向为零时为 0。基准必须来自完整、连续的本地历史，不足时为缺失。</li><li><strong>位置：</strong>（上证收盘 ÷ MA20 −1）×100×5。MA20 包含当日与此前 19 个交易日；当前脚本还要求此前 20 个交易日记录齐全才启用，积累期间按约定为 0。</li><li><strong>缺失处理：</strong>缺失子分在 JSON 中为 null，不重新分配权重。页面显示部分维度合计并标记口径不完整；历史不足的位置 0 不代表真实均线距离为 0。</li></ul><div class="bands"><span>恐慌：S &lt; −60</span><span>偏冷：−60 ≤ S &lt; −20</span><span>中性：−20 ≤ S &lt; 20</span><span>偏暖：20 ≤ S ≤ 60</span><span>过热：S &gt; 60</span></div><p>相邻分档的端点按脚本确定：−60 属于偏冷，−20 属于中性，20 和 60 属于偏暖。</p><p><strong>更新：</strong>GitHub Actions 计划于北京时间周一至周五 18:17 运行，平台可能延迟。脚本检查交易日，16:00 前、当日日线未更新、全零行情或核验不通过时跳过，不修改历史。同日重跑覆盖同日记录，写入前备份。</p><p><strong>日期限制：</strong>使用带日期的上证日线交叉核验指数报价；新浪股票接口仅含时分秒，无法逐股确认报价日期。接口亦可能缺行、延迟或变更，指标仅用于观察。</p><p><strong>连续记录：</strong>指截至最新记录连续覆盖的交易日数，不是 CI 执行次数；周末和交易所休市日不计入。</p><p>数据：AKShare 1.19.1 / 新浪行情；<a href="https://github.com/dingyu001209-pixel/market-pulse/blob/main/README.md" target="_blank" rel="noopener noreferrer" id="readme-link" hidden>阅读项目说明 ↗</a> <a href="https://akshare.akfamily.xyz/data/index/index.html" target="_blank" rel="noopener noreferrer">指数接口文档 ↗</a></p></div></details>
+  </main>
+  <footer class="wrap"><div class="footer-row"><span>MARKET PULSE · A 股市场温度计</span><span>生成时间（北京时间）：<span id="updated-at">—</span></span></div><p><strong>免责声明：</strong>本项目仅供数据分析与学习展示，不构成投资建议。情绪分不是预测，也不应作为买卖依据；数据可能存在延迟、缺失或错误。</p></footer>
+  <script>
+    'use strict';
+    const $ = id => document.getElementById(id);
+    const isNumber = value => typeof value === 'number' && Number.isFinite(value);
+    const format = (value, digits = 2) => isNumber(value) ? value.toLocaleString('zh-CN', {minimumFractionDigits:digits, maximumFractionDigits:digits}) : '—';
+    const signed = (value, digits = 2) => isNumber(value) ? (value > 0 ? '+' : '') + format(value, digits) : '—';
+    const tone = value => !isNumber(value) || value === 0 ? 'neutral' : value > 0 ? 'up' : 'down';
+    const weight = {strength:.30, breadth:.25, volume:.25, position:.20};
+    const indexNames = {sh000001:'上证指数', sz399001:'深证成指', sz399006:'创业板指', sh000300:'沪深300'};
+    let chart;
+    function notice(message, error = false) { $('notice').hidden = !message; $('notice').textContent = message; $('notice').classList.toggle('error', error); }
+    function validate(document) {
+      if (document.schema_version !== 1 || !document.metadata || !Array.isArray(document.records)) throw new Error('历史文件结构不兼容');
+      let previous = '';
+      for (const row of document.records) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(row.date) || row.date <= previous) throw new Error('历史日期重复或未排序');
+        previous = row.date;
+        if (!isNumber(row.score) || Math.abs(row.score) > 100 || !isNumber(row.sh_close) || row.sh_close <= 0) throw new Error('历史分数或指数价格无效');
+        if (!row.subscores || Object.keys(row.subscores).sort().join() !== Object.keys(weight).sort().join()) throw new Error('缺少四项子分');
+        let total = 0;
+        for (const [key, w] of Object.entries(weight)) {
+          const value = row.subscores[key];
+          if (value !== null && (!isNumber(value) || Math.abs(value) > 100)) throw new Error('子分无效');
+          if (value !== null) total += value * w;
+        }
+        if (Math.abs(total - row.score) > .0002) throw new Error('合计分数与子分不一致');
+      }
+      if (document.records.length && (document.metadata.record_count !== document.records.length || document.metadata.data_date !== document.records.at(-1).date)) throw new Error('记录统计与日期不一致');
+      return document;
+    }
+    function dimensionRows(row) {
+      const descriptions = {
+        strength:'四指数涨跌幅中位数 ' + signed(row.index_median_pct, 4) + '%',
+        breadth:'上涨 ' + format(row.up, 0) + ' 家 / 下跌 ' + format(row.down, 0) + ' 家',
+        volume:'今日 / 前20日均额 ' + format(row.turnover_ratio20) + ' 倍',
+        position:'上证收盘 ' + format(row.sh_close) + ' / MA20 ' + format(row.sh_ma20)
+      };
+      const names = {strength:'强度',breadth:'广度',volume:'量能',position:'位置'};
+      $('breakdown-body').replaceChildren();
+      for (const [key,w] of Object.entries(weight)) {
+        const tr = document.createElement('tr');
+        const value = row.subscores[key];
+        const first = document.createElement('td');
+        const title = document.createElement('strong'); title.textContent = names[key]; first.append(title);
+        const description = document.createElement('span'); description.className = 'formula'; description.textContent = descriptions[key]; first.append(description);
+        const reason = row.missing_reasons?.[key];
+        if (reason) { const note = document.createElement('span'); note.className = 'dimension-note'; note.textContent = reason; first.append(note); }
+        tr.append(first);
+        for (const [text,color] of [[format(w*100,0)+'%','neutral'],[value === null ? '缺失' : signed(value),tone(value)],[value === null ? '未计入' : signed(value*w),tone(value)]]) {
+          const td = document.createElement('td'); td.className = 'number '+color; td.textContent = text; tr.append(td);
+        }
+        $('breakdown-body').append(tr);
+      }
+    }
+    function render(payload) {
+      const records = payload.records, row = records.at(-1), meta = payload.metadata;
+      if (!row) { notice('尚无有效历史记录，等待下一次收盘后取数。'); $('trend-chart').textContent = '暂无历史数据'; return; }
+      $('data-date').textContent = row.date;
+      $('score').textContent = signed(row.score); $('score').classList.add(tone(row.score));
+      $('level').textContent = row.level + (row.score_complete ? '' : ' · 暂定');
+      const baselinePending = !isNumber(row.turnover_mean20_yuan) || !isNumber(row.sh_ma20);
+      $('completeness').textContent = baselinePending ? '历史基准积累中' : row.score_complete ? '四项子分齐全' : '部分维度缺失';
+      $('needle').style.left = ((row.score+100)/2)+'%';
+      const messages = [];
+      if (!row.score_complete) messages.push('当前为部分维度合计，缺失项未计入，权重不重新归一化。');
+      if (row.missing_reasons?.position) messages.push('位置暂按 0 处理。');
+      notice(messages.join(' '));
+      $('score-note').textContent = '固定权重：强度 30% · 广度 25% · 量能 25% · 位置 20%';
+      $('sh-close').textContent = format(row.sh_close);
+      const shChange = row.index_changes?.sh000001?.pct_change;
+      $('sh-change').textContent = isNumber(shChange) ? '当日 ' + signed(shChange) + '%' : '指数涨跌幅缺失'; $('sh-change').classList.add(tone(shChange));
+      $('turnover').textContent = isNumber(row.turnover_yuan) ? format(row.turnover_yuan/1e12,3) : '—';
+      $('volume-ratio').textContent = isNumber(row.turnover_ratio20) ? '前20日均额的 '+format(row.turnover_ratio20)+' 倍' : '20 日量能基准不足或数据缺失';
+      $('record-count').textContent = format(records.length,0); $('streak').textContent = format(meta.consecutive_trading_days,0);
+      const active = row.active_count;
+      $('active-count').textContent = isNumber(active) ? '· 有成交 '+format(active,0)+' 家' : '· 明细缺失';
+      for (const key of ['up','down','flat']) { $(key+'-count').textContent = format(row[key],0); $(key+'-bar').style.width = isNumber(active) && active > 0 && isNumber(row[key]) ? row[key]/active*100+'%' : '0%'; }
+      $('indices').replaceChildren();
+      for (const [code,name] of Object.entries(indexNames)) {
+        const value = row.index_changes?.[code]?.pct_change, card = document.createElement('div'); card.className = 'index-card';
+        const label = document.createElement('span'); label.textContent = name;
+        const number = document.createElement('strong'); number.className = tone(value); number.textContent = isNumber(value) ? signed(value)+'%' : '—';
+        card.append(label,number); $('indices').append(card);
+      }
+      dimensionRows(row);
+      $('total-score').textContent = signed(row.score); $('total-score').classList.add(tone(row.score));
+      $('total-note').textContent = row.score_complete ? '四项子分均可计算；位置积累情况见上表。' : '口径不完整，分档暂定；请结合缺失原因阅读。';
+      $('updated-at').textContent = new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(new Date(row.updated_at));
+      $('chart-summary').textContent = records.length === 1 ? '目前只有 1 条真实记录，图表仅显示数据点；积累后形成走势。' : records[0].date+' 至 '+row.date+'，共 '+records.length+' 条记录。';
+      $('trend-chart').setAttribute('aria-label','历史情绪分与上证指数，'+records.length+' 条记录；最新情绪分 '+format(row.score)+'，上证 '+format(row.sh_close)+' 点。');
+      return records;
+    }
+    async function loadECharts() {
+      for (const url of ['https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js','https://cdnjs.cloudflare.com/ajax/libs/echarts/5.6.0/echarts.min.js']) {
+        try {
+          await new Promise((resolve,reject) => {
+            const script = document.createElement('script'); script.src = url; script.async = true;
+            const timeout = setTimeout(() => {script.remove(); reject(new Error('CDN 请求超时'));},10000);
+            script.onload = () => {clearTimeout(timeout);resolve();}; script.onerror = () => {clearTimeout(timeout);script.remove();reject(new Error('CDN 加载失败'));}; document.head.append(script);
+          });
+          if (window.echarts) return;
+        } catch (error) { console.warn('图表库加载：',error.message); }
+      }
+      throw new Error('图表库暂时无法加载，数值与子分仍可阅读。请稍后刷新页面。');
+    }
+    function drawChart(records) {
+      $('trend-chart').replaceChildren();
+      chart = echarts.init($('trend-chart'));
+      chart.setOption({
+        backgroundColor:'transparent',animation:!matchMedia('(prefers-reduced-motion: reduce)').matches,
+        textStyle:{fontFamily:'Segoe UI, Microsoft YaHei, sans-serif'},
+        aria:{enabled:true},
+        color:['#75ddbd','#95b6ff'],
+        legend:{top:8,right:0,textStyle:{color:'#a4b2c4',fontSize:11},itemWidth:18,itemHeight:8,data:['情绪分','上证指数']},
+        tooltip:{trigger:'axis',confine:true,backgroundColor:'#1c2b3d',borderColor:'#344b5e',textStyle:{color:'#eef3f7',fontSize:12},valueFormatter:value => format(value)},
+        grid:{top:60,left:8,right:8,bottom:24,containLabel:true},
+        xAxis:{type:'category',data:records.map(row=>row.date),boundaryGap:records.length === 1,axisTick:{show:false},axisLine:{lineStyle:{color:'#344254'}},axisLabel:{color:'#a4b2c4',fontSize:10,formatter:value=>value.slice(5)},axisPointer:{type:'line'}},
+        yAxis:[{type:'value',name:'情绪分',min:-100,max:100,interval:40,nameTextStyle:{color:'#a4b2c4',fontSize:10},axisLabel:{color:'#a4b2c4',fontSize:10},splitLine:{lineStyle:{color:'#263447'}},axisLine:{show:false}},{type:'value',name:'上证 / 点',scale:true,nameTextStyle:{color:'#a4b2c4',fontSize:10},min:value=>Math.floor(value.min*.995/10)*10,max:value=>Math.ceil(value.max*1.005/10)*10,axisLabel:{color:'#95b6ff',fontSize:10,formatter:value=>format(value,0)},splitLine:{show:false},axisLine:{show:false}}],
+        series:[{name:'情绪分',type:'line',data:records.map(row=>({value:row.score,itemStyle:{color:'#75ddbd',borderColor:row.score_complete?'#75ddbd':'#efd093',borderWidth:2}})),symbol:'circle',symbolSize:records.length===1?11:6,showSymbol:true,smooth:false,connectNulls:false,lineStyle:{width:2},markLine:{silent:true,symbol:'none',label:{show:false},lineStyle:{color:'#66778b',type:'dashed'},data:[{yAxis:0}]},markArea:{silent:true,label:{show:false},data:[[{yAxis:-100,itemStyle:{color:'rgba(87,156,190,.035)'}},{yAxis:-60}],[{yAxis:60,itemStyle:{color:'rgba(241,139,146,.035)'}},{yAxis:100}]]}},{name:'上证指数',type:'line',yAxisIndex:1,data:records.map(row=>row.sh_close),symbol:'circle',symbolSize:records.length===1?9:4,showSymbol:true,smooth:false,connectNulls:false,lineStyle:{width:2,type:'dashed'}}]
+      });
+      new ResizeObserver(()=>chart.resize()).observe($('trend-chart'));
+    }
+    async function start() {
+      try {
+        if (location.protocol === 'file:') throw new Error('请通过静态预览或部署网址打开页面；直接双击 HTML 无法读取 JSON。');
+        const controller = new AbortController(), timer = setTimeout(()=>controller.abort(),15000);
+        let response;
+        try { response = await fetch('./history.json',{cache:'no-store',signal:controller.signal}); } finally { clearTimeout(timer); }
+        if (!response.ok) throw new Error('history.json 读取失败（HTTP '+response.status+'）');
+        const document = validate(await response.json());
+        const records = render(document);
+        if (!records) return;
+        try { await loadECharts(); drawChart(records); }
+        catch (error) { $('trend-chart').textContent = error.message; $('trend-chart').classList.add('chart-message'); }
+      } catch (error) {
+        notice('数据加载失败：'+(error.name==='AbortError'?'请求超时，请稍后刷新。':error.message),true);
+        $('trend-chart').textContent = '未能读取有效历史数据，未展示示例数据。';
+      }
+    }
+    function revealMethodology() { if (location.hash === '#methodology') $('methodology').open = true; }
+    window.addEventListener('hashchange', revealMethodology);
+    revealMethodology();
+    start();
+  </script>
+</body>
+</html>
