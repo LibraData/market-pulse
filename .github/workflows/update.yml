@@ -1,0 +1,181 @@
+name: Update market pulse
+
+on:
+  workflow_dispatch:
+  schedule:
+    # UTC 10:17 = Beijing 18:17, Monday through Friday.
+    # Exchange holidays are checked by src/etl.py.
+    - cron: '17 10 * * 1-5'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: market-pulse-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    # Manual runs should also select the repository's default branch.
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    env:
+      PYTHONUNBUFFERED: '1'
+      PYTHONUTF8: '1'
+      ETL_DATE_COLUMN: date
+      ETL_CLOSE_COLUMN: close
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+
+    steps:
+      - name: Check out default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install pinned dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Prepare isolated candidate directory
+        run: |
+          set -euo pipefail
+          mkdir -p work/candidate/src work/candidate/public work/logs
+          cp src/etl.py work/candidate/src/etl.py
+          if [ -f public/history.json ]; then
+            cp public/history.json work/candidate/public/history.json
+            cp public/history.json work/before-history.json
+          fi
+
+      - name: Fetch and calculate candidate JSON
+        run: |
+          set -euo pipefail
+          python -u work/candidate/src/etl.py --date-source A 2>&1 | tee work/logs/etl.log
+
+      - name: Validate candidate and preserve previous dates
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import math
+          from datetime import date, datetime, timedelta, timezone
+          from pathlib import Path
+
+          candidate = Path('work/candidate/public/history.json')
+          previous = Path('work/before-history.json')
+          today = datetime.now(timezone(timedelta(hours=8))).date().isoformat()
+
+          # A successful SKIP leaves the copy byte-identical, or absent on day one.
+          if not candidate.exists():
+              if previous.exists():
+                  raise RuntimeError('Candidate history unexpectedly disappeared')
+              print('SKIP: no valid record generated; nothing to publish')
+              raise SystemExit(0)
+          if previous.exists() and candidate.read_bytes() == previous.read_bytes():
+              print('SKIP: history unchanged; nothing to publish')
+              raise SystemExit(0)
+
+          def load(path):
+              return json.loads(path.read_text(encoding='utf-8-sig'))
+
+          def finite(value):
+              if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+                  raise ValueError('Invalid numeric value')
+              return value
+
+          document = load(candidate)
+          if document.get('schema_version') != 1:
+              raise ValueError('Unsupported history schema')
+          rows = document.get('records')
+          if not isinstance(rows, list) or not rows:
+              raise ValueError('History must contain records')
+          days = [row['date'] for row in rows]
+          if days != sorted(set(days)):
+              raise ValueError('Dates must be sorted and unique')
+          for row in rows:
+              if date.fromisoformat(row['date']).isoformat() != row['date']:
+                  raise ValueError('Invalid date format')
+              if row['date'] > today:
+                  raise ValueError('Future date in history')
+              if not -100 <= finite(row['score']) <= 100:
+                  raise ValueError('Score out of range')
+              if finite(row['sh_close']) <= 0:
+                  raise ValueError('Non-positive index close')
+              weights = {'strength': 0.30, 'breadth': 0.25, 'volume': 0.25, 'position': 0.20}
+              subscores = row['subscores']
+              if set(subscores) != set(weights):
+                  raise ValueError('Four subscores are required')
+              total = 0.0
+              for key, weight in weights.items():
+                  value = subscores[key]
+                  if value is not None:
+                      if not -100 <= finite(value) <= 100:
+                          raise ValueError('Subscore out of range')
+                      total += weight * value
+              if abs(row['score'] - round(total, 4)) > 0.0001:
+                  raise ValueError('Score does not match fixed-weight calculation')
+              amount = row.get('turnover_yuan')
+              if amount is not None and finite(amount) <= 0:
+                  raise ValueError('Non-positive market turnover')
+
+          if days[-1] != today:
+              raise ValueError('Changed history must contain today as latest date')
+          if document['metadata']['record_count'] != len(rows):
+              raise ValueError('Record count mismatch')
+          if document['metadata']['data_date'] != today:
+              raise ValueError('Metadata date mismatch')
+          new_by_day = {row['date']: row for row in rows}
+          if previous.exists():
+              for old in load(previous)['records']:
+                  if old['date'] not in new_by_day:
+                      raise ValueError('Existing trading date removed')
+                  if old['date'] != today and new_by_day[old['date']] != old:
+                      raise ValueError('Past trading record modified')
+          else:
+              if days != [today]:
+                  raise ValueError('First run must generate only today')
+
+          Path('work/validated').write_text('ok', encoding='utf-8')
+          print(f'PASS: {len(rows)} records, latest date {today}')
+          PY
+
+      - name: Commit validated history only
+        run: |
+          set -euo pipefail
+          if [ ! -f work/validated ]; then
+            echo "No validated change; repository history preserved."
+            exit 0
+          fi
+          mkdir -p public
+          cp work/candidate/public/history.json public/history.json
+          git add -- public/history.json
+          if git diff --cached --quiet; then
+            echo "No change to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: update market pulse data"
+          # No force push: a concurrent user commit causes a safe failure.
+          git push origin "HEAD:$DEFAULT_BRANCH"
+
+      - name: Save logs and history backups
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-pulse-run-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            work/logs/
+            work/before-history.json
+            work/candidate/work/backups/
+          if-no-files-found: ignore
+          retention-days: 7
