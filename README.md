@@ -4,9 +4,9 @@
 
 每天收盘后，从指数强度、涨跌广度、成交量能与均线位置观察 A 股情绪的静态看板。
 
-[查看历史 JSON](public/history.json) · [查看运行记录](https://github.com/dingyu001209-pixel/market-pulse/actions) · [分析短文草稿](analysis-draft.md)
+[查看历史 JSON](public/history.json) · [查看运行记录](https://github.com/dingyu001209-pixel/market-pulse/actions) · [分析短文草稿](analysis-draft.md) · [故障演练清单](failure-drill.md)
 
-**交付状态（2026-10-13）：**取数、JSON 历史保存、Actions 环境与跳过路径、前端展示已验证；目前 1 条行情记录。故障演练与公开部署尚未完成。徽章表示工作流执行状态，绿色不代表当天一定产生新记录。
+**交付状态（2026-10-13）：**取数、JSON 历史保存、Actions 环境与跳过路径、前端展示、故障拦截与恢复已验证；目前 1 条行情记录。公开部署尚未完成。徽章表示工作流执行状态，绿色不代表当天一定产生新记录。
 
 ## 问题
 
@@ -128,6 +128,7 @@ market-pulse/
   requirements.txt
   README.md
   analysis-draft.md
+  failure-drill.md
 ```
 
 `analysis-draft.md` 是作品集说明草稿，不参与取数或展示。`.venv/`、`work/`、探测日志都不是前端发布内容，不应作为网站文件上传。
@@ -142,6 +143,8 @@ market-pulse/
 | 2026-10-12 23:22 | ETL 首次正式运行 | 写入 1 条记录，连续记录 1 个交易日 |
 | 2026-10-13 00:23 | GitHub Actions 首次检查 | [成功](https://github.com/dingyu001209-pixel/market-pulse/actions/runs/38276969934)；16:00 前正常跳过，历史内容未变 |
 | 阶段 4 | 前端本地检查 | 真实 JSON、双轴图、四项拆解、375px 手机与桌面布局、口径链接已检查 |
+| 2026-10-13 06:52 | 人为故障演练 | [CI 按预期失败](https://github.com/dingyu001209-pixel/market-pulse/actions/runs/38319127749)；提交步骤跳过，历史未变 |
+| 2026-10-13 06:53 | 恢复正常 ETL | [CI 成功](https://github.com/dingyu001209-pixel/market-pulse/actions/runs/38319240735)；早间正常跳过，脚本恢复、历史未变 |
 
 代码层面已检查分数计算、历史不足、缺失交易日、同日去重、原文件备份、全零行情拒绝，以及 CI 候选校验。远端首次检查尚未覆盖收盘后真实取数与自动提交路径；计划运行的实际结果仍需持续观察。
 
