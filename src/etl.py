@@ -1,7 +1,5 @@
 """market-pulse ETL. Python 3.11 / AKShare 1.19.1 / pandas 2.2.3."""
 
-raise RuntimeError("DRILL: intentional failure before fetching or writing data")
-
 import argparse
 import json
 import logging
