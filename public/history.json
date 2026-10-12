@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "metadata": {
+    "data_date": "2026-10-12",
+    "updated_at": "2026-10-12T23:21:58+08:00",
+    "record_count": 1,
+    "consecutive_trading_days": 1,
+    "weights": {
+      "strength": 0.3,
+      "breadth": 0.25,
+      "volume": 0.25,
+      "position": 0.2
+    },
+    "score_policy": "缺失子分为null，保留固定权重，不重新归一化；位置历史不足为0",
+    "methodology_url": "index.html#methodology",
+    "disclaimer": "仅供数据分析展示，不构成投资建议。数据可能延迟或有误。"
+  },
+  "records": [
+    {
+      "date": "2026-10-12",
+      "updated_at": "2026-10-12T23:21:58+08:00",
+      "score": -22.5156,
+      "level": "偏冷",
+      "subscores": {
+        "strength": -27.11,
+        "breadth": -57.5305,
+        "volume": null,
+        "position": 0.0
+      },
+      "score_complete": false,
+      "available_weight": 0.75,
+      "missing_reasons": {
+        "position": "前20个交易日的本地记录不足，按约定为0",
+        "volume": "缺少当日成交额、四指数方向或前20个交易日完整基准"
+      },
+      "sh_close": 3797.2424,
+      "index_changes": {
+        "sh000001": {
+          "name": "上证指数",
+          "pct_change": -0.434
+        },
+        "sz399001": {
+          "name": "深证成指",
+          "pct_change": -2.033
+        },
+        "sz399006": {
+          "name": "创业板指",
+          "pct_change": -2.613
+        },
+        "sh000300": {
+          "name": "沪深300",
+          "pct_change": -0.678
+        }
+      },
+      "index_median_pct": -1.3555,
+      "up": 1166,
+      "down": 4325,
+      "flat": 69,
+      "universe_count": 5572,
+      "active_count": 5560,
+      "turnover_yuan": 1550504409734.0,
+      "turnover_mean20_yuan": null,
+      "turnover_ratio20": null,
+      "sh_ma20": null,
+      "sources": {
+        "spot": "sina",
+        "date_reference": "A"
+      },
+      "freshness": {
+        "index_date_verified": true,
+        "stock_date_verified": false,
+        "note": "股票接口仅含时分秒；使用当日日线和上证报价交叉核验，不能逐股证明报价日期"
+      },
+      "methodology_version": "1.0"
+    }
+  ]
+}
