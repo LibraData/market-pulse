@@ -2,7 +2,7 @@
   "schema_version": 1,
   "metadata": {
     "data_date": "2026-10-13",
-    "updated_at": "2026-10-13T18:37:25+08:00",
+    "updated_at": "2026-10-13T20:19:19+08:00",
     "record_count": 2,
     "consecutive_trading_days": 2,
     "weights": {
@@ -75,7 +75,7 @@
     },
     {
       "date": "2026-10-13",
-      "updated_at": "2026-10-13T18:37:25+08:00",
+      "updated_at": "2026-10-13T20:19:19+08:00",
       "score": 0.6542,
       "level": "中性",
       "subscores": {
