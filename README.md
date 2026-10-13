@@ -4,9 +4,9 @@
 
 每天收盘后，从指数强度、涨跌广度、成交量能与均线位置观察 A 股情绪的静态看板。
 
-[查看历史 JSON](public/history.json) · [查看运行记录](https://github.com/dingyu001209-pixel/market-pulse/actions) · [分析短文草稿](analysis-draft.md) · [故障演练清单](failure-drill.md)
+[打开在线看板](https://dingyu001209-pixel.github.io/market-pulse/) · [查看历史 JSON](public/history.json) · [查看运行记录](https://github.com/dingyu001209-pixel/market-pulse/actions) · [分析短文草稿](analysis-draft.md) · [故障演练清单](failure-drill.md)
 
-**交付状态（2026-10-13）：**取数、JSON 历史保存、Actions 环境与跳过路径、前端展示、故障拦截与恢复已验证；目前 1 条行情记录。公开部署尚未完成。徽章表示工作流执行状态，绿色不代表当天一定产生新记录。
+**交付状态（2026-10-13）：**取数、JSON 历史保存、Actions、前端展示、故障拦截与恢复、GitHub Pages 公开部署均已验证；目前 2 条行情记录，最新日期为 2026-10-13。徽章表示工作流执行状态，绿色不代表当天一定产生新记录。
 
 ## 问题
 
@@ -145,16 +145,17 @@ market-pulse/
 | 阶段 4 | 前端本地检查 | 真实 JSON、双轴图、四项拆解、375px 手机与桌面布局、口径链接已检查 |
 | 2026-10-13 06:52 | 人为故障演练 | [CI 按预期失败](https://github.com/dingyu001209-pixel/market-pulse/actions/runs/38319127749)；提交步骤跳过，历史未变 |
 | 2026-10-13 06:53 | 恢复正常 ETL | [CI 成功](https://github.com/dingyu001209-pixel/market-pulse/actions/runs/38319240735)；早间正常跳过，脚本恢复、历史未变 |
+| 2026-10-13（上线） | 云端更新与 Pages 发布 | [完整工作流成功](https://github.com/dingyu001209-pixel/market-pulse/actions/runs/38396397675)；新增 10 月 13 日记录、连续 2 个交易日，公开 HTML 与 JSON 均返回 HTTP 200，浏览器图表正常 |
 
-代码层面已检查分数计算、历史不足、缺失交易日、同日去重、原文件备份、全零行情拒绝，以及 CI 候选校验。远端首次检查尚未覆盖收盘后真实取数与自动提交路径；计划运行的实际结果仍需持续观察。
+代码层面已检查分数计算、历史不足、缺失交易日、同日去重、原文件备份、全零行情拒绝，以及 CI 候选校验。上线工作流已覆盖收盘后真实取数、自动提交和网站部署。Cron 准点性与接口长期稳定性仍需根据后续运行记录观察。
 
 ## 发布状态与零成本范围
 
-**当前公开部署未启用。** 计划使用 GitHub Pages，将 `public/` 发布为网站根目录，保留前端对 `./history.json` 的相对读取。
+**网站已上线：** https://dingyu001209-pixel.github.io/market-pulse/ 。GitHub Pages 将 `public/` 发布为网站根目录，前端通过 `./history.json` 读取当前部署的数据。
 
 公开仓库可使用 GitHub Free 的 Pages 静态托管及标准 GitHub 托管 runner 的免费 Actions 运行范围。本项目不需要数据库、付费域名或外部 API 密钥；免费服务仍受平台使用额度和限制约束。[Actions 计费说明](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
 
-上线前还需配置 Pages 发布源并接入静态部署步骤。更新 JSON 与部署应衔接在同一次工作流中，因为使用 `GITHUB_TOKEN` 推送的提交不会触发分支发布模式下的 Pages 构建。当前 `update.yml` 只更新历史，不发布网站；源码上传成功不等于网站已经上线。[发布源说明](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+Pages 发布源已设为 GitHub Actions。`update.yml` 先更新与校验历史，再由依赖该作业的 Pages 作业重新检出默认分支最新内容、校验站点载荷并发布。取数作业失败时不部署；正常跳过时可发布现有有效历史。更新与部署衔接在同一次工作流中，避免依赖 `GITHUB_TOKEN` 推送再次触发分支发布构建。[发布源说明](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
 
 官方参考：[Pages 静态托管](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages)、[Pages 自定义工作流](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)、[Actions 状态徽章](https://docs.github.com/en/actions/how-tos/monitor-workflows/add-a-status-badge)。
 
