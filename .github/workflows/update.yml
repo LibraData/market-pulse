@@ -1,11 +1,13 @@
 name: Update market pulse
 
 on:
-  # Validate ETL/workflow changes; data-only bot commits do not trigger this.
+  # Validate code/site changes; data-only bot commits do not retrigger this.
   push:
     paths:
       - 'src/etl.py'
       - 'requirements.txt'
+      - 'public/index.html'
+      - 'public/history.json'
       - '.github/workflows/update.yml'
   workflow_dispatch:
   schedule:
@@ -185,3 +187,98 @@ jobs:
             work/candidate/work/backups/
           if-no-files-found: ignore
           retention-days: 7
+
+  deploy:
+    name: Publish GitHub Pages
+    needs: update
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      # A new checkout reads the JSON commit made by the update job.
+      - name: Check out latest default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Set up Python 3.11 for payload validation
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate static site payload
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import math
+          from datetime import date
+          from pathlib import Path
+
+          if not Path('public/index.html').is_file():
+              raise ValueError('Missing dashboard HTML')
+
+          def reject_constant(value):
+              raise ValueError(f'Non-standard JSON constant: {value}')
+
+          document = json.loads(Path('public/history.json').read_text(encoding='utf-8-sig'),
+                                parse_constant=reject_constant)
+          if document.get('schema_version') != 1:
+              raise ValueError('Unsupported history schema')
+          rows = document.get('records')
+          if not isinstance(rows, list) or not rows:
+              raise ValueError('No history to publish')
+          days = [row['date'] for row in rows]
+          if days != sorted(set(days)):
+              raise ValueError('History dates must be unique and sorted')
+          weights = {'strength': .30, 'breadth': .25, 'volume': .25, 'position': .20}
+
+          def finite(value):
+              return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+          for row in rows:
+              if date.fromisoformat(row['date']).isoformat() != row['date']:
+                  raise ValueError('Invalid date format')
+              if not finite(row['sh_close']) or row['sh_close'] <= 0:
+                  raise ValueError('Invalid index close')
+              if not finite(row['score']) or abs(row['score']) > 100:
+                  raise ValueError('Invalid score')
+              if set(row['subscores']) != set(weights):
+                  raise ValueError('Four subscores required')
+              total = 0
+              for key, weight in weights.items():
+                  value = row['subscores'][key]
+                  if value is not None:
+                      if not finite(value) or abs(value) > 100:
+                          raise ValueError('Invalid subscore')
+                      total += value * weight
+              if abs(row['score'] - round(total, 4)) > .0001:
+                  raise ValueError('Score mismatch')
+          if document['metadata']['record_count'] != len(rows):
+              raise ValueError('Record count mismatch')
+          if document['metadata']['data_date'] != days[-1]:
+              raise ValueError('Latest date mismatch')
+          print(f'PASS: publish {len(rows)} real records, latest date {days[-1]}')
+          PY
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: public
+
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
