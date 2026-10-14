@@ -1,10 +1,10 @@
 # A 股市场温度计 · market-pulse
 
-[![数据更新工作流状态](https://github.com/dingyu001209-pixel/market-pulse/actions/workflows/update.yml/badge.svg?branch=main)](https://github.com/dingyu001209-pixel/market-pulse/actions/workflows/update.yml)
+[![数据更新工作流状态](https://github.com/LibraData/market-pulse/actions/workflows/update.yml/badge.svg?branch=main)](https://github.com/LibraData/market-pulse/actions/workflows/update.yml)
 
 每天收盘后，从指数强度、涨跌广度、成交量能与均线位置观察 A 股情绪的静态看板。
 
-[打开在线看板](https://dingyu001209-pixel.github.io/market-pulse/) · [查看历史 JSON](public/history.json) · [查看运行记录](https://github.com/dingyu001209-pixel/market-pulse/actions) · [分析短文草稿](analysis-draft.md) · [故障演练清单](failure-drill.md)
+[打开在线看板](https://LibraData.github.io/market-pulse/) · [查看历史 JSON](public/history.json) · [查看运行记录](https://github.com/LibraData/market-pulse/actions) · [分析短文草稿](analysis-draft.md) · [故障演练清单](failure-drill.md)
 
 **交付状态（2026-10-13）：**取数、JSON 历史保存、Actions、前端展示、故障拦截与恢复、GitHub Pages 公开部署均已验证；目前 2 条行情记录，最新日期为 2026-10-13。徽章表示工作流执行状态，绿色不代表当天一定产生新记录。
 
@@ -141,17 +141,17 @@ market-pulse/
 | 2026-10-12 23:19 | 上证日线日期接口探测 | 成功；最新日线 2026-10-12，字段 `date`、`close` 已核对 |
 | 2026-10-12 23:21 | ETL 试算 | 成功，不写历史 |
 | 2026-10-12 23:22 | ETL 首次正式运行 | 写入 1 条记录，连续记录 1 个交易日 |
-| 2026-10-13 00:23 | GitHub Actions 首次检查 | [成功](https://github.com/dingyu001209-pixel/market-pulse/actions/runs/38276969934)；16:00 前正常跳过，历史内容未变 |
+| 2026-10-13 00:23 | GitHub Actions 首次检查 | [成功](https://github.com/LibraData/market-pulse/actions/runs/38276969934)；16:00 前正常跳过，历史内容未变 |
 | 阶段 4 | 前端本地检查 | 真实 JSON、双轴图、四项拆解、375px 手机与桌面布局、口径链接已检查 |
-| 2026-10-13 06:52 | 人为故障演练 | [CI 按预期失败](https://github.com/dingyu001209-pixel/market-pulse/actions/runs/38319127749)；提交步骤跳过，历史未变 |
-| 2026-10-13 06:53 | 恢复正常 ETL | [CI 成功](https://github.com/dingyu001209-pixel/market-pulse/actions/runs/38319240735)；早间正常跳过，脚本恢复、历史未变 |
-| 2026-10-13（上线） | 云端更新与 Pages 发布 | [完整工作流成功](https://github.com/dingyu001209-pixel/market-pulse/actions/runs/38396397675)；新增 10 月 13 日记录、连续 2 个交易日，公开 HTML 与 JSON 均返回 HTTP 200，浏览器图表正常 |
+| 2026-10-13 06:52 | 人为故障演练 | [CI 按预期失败](https://github.com/LibraData/market-pulse/actions/runs/38319127749)；提交步骤跳过，历史未变 |
+| 2026-10-13 06:53 | 恢复正常 ETL | [CI 成功](https://github.com/LibraData/market-pulse/actions/runs/38319240735)；早间正常跳过，脚本恢复、历史未变 |
+| 2026-10-13（上线） | 云端更新与 Pages 发布 | [完整工作流成功](https://github.com/LibraData/market-pulse/actions/runs/38396397675)；新增 10 月 13 日记录、连续 2 个交易日，公开 HTML 与 JSON 均返回 HTTP 200，浏览器图表正常 |
 
 代码层面已检查分数计算、历史不足、缺失交易日、同日去重、原文件备份、全零行情拒绝，以及 CI 候选校验。上线工作流已覆盖收盘后真实取数、自动提交和网站部署。Cron 准点性与接口长期稳定性仍需根据后续运行记录观察。
 
 ## 发布状态与零成本范围
 
-**网站已上线：** https://dingyu001209-pixel.github.io/market-pulse/ 。GitHub Pages 将 `public/` 发布为网站根目录，前端通过 `./history.json` 读取当前部署的数据。
+**网站已上线：** https://LibraData.github.io/market-pulse/ 。GitHub Pages 将 `public/` 发布为网站根目录，前端通过 `./history.json` 读取当前部署的数据。
 
 公开仓库可使用 GitHub Free 的 Pages 静态托管及标准 GitHub 托管 runner 的免费 Actions 运行范围。本项目不需要数据库、付费域名或外部 API 密钥；免费服务仍受平台使用额度和限制约束。[Actions 计费说明](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
 
