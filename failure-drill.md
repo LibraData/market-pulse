@@ -8,12 +8,12 @@
 | --- | --- |
 | 演练前历史 | 2026-10-12，1 条记录 |
 | 故障注入 | 在 ETL 顶层、取数和写文件之前主动抛出 `RuntimeError` |
-| CI 报红 | [失败运行](https://github.com/dingyu001209-pixel/market-pulse/actions/runs/38319127749)，北京时间 2026-10-13 06:52 触发 |
+| CI 报红 | [失败运行](https://github.com/LibraData/market-pulse/actions/runs/38319127749)，北京时间 2026-10-13 06:52 触发 |
 | 报红步骤 | `Fetch and calculate candidate JSON` |
 | 后续步骤 | 候选校验和历史提交均为 `skipped` |
 | 故障备份 | 失败运行仍成功保存日志和演练前历史 artifact |
 | 恢复 | 完整恢复原始 ETL，而不是只绕过异常 |
-| CI 恢复 | [成功运行](https://github.com/dingyu001209-pixel/market-pulse/actions/runs/38319240735)，北京时间 2026-10-13 06:53 触发 |
+| CI 恢复 | [成功运行](https://github.com/LibraData/market-pulse/actions/runs/38319240735)，北京时间 2026-10-13 06:53 触发 |
 | 恢复后行情处理 | 16:00 前正常 `SKIP`，不生成当天记录 |
 | 文件核对 | 报红后、恢复后，历史内容与演练前一致，Git blob SHA 也一致 |
 
@@ -51,8 +51,8 @@ Set-Location "$env:USERPROFILE\Documents\market-pulse"
 
 ```powershell
 New-Item -ItemType Directory -Force -Path .\work\drill | Out-Null
-$drillHistory = Invoke-RestMethod -Uri "https://api.github.com/repos/dingyu001209-pixel/market-pulse/contents/public/history.json?ref=main"
-$drillETL = Invoke-RestMethod -Uri "https://api.github.com/repos/dingyu001209-pixel/market-pulse/contents/src/etl.py?ref=main"
+$drillHistory = Invoke-RestMethod -Uri "https://api.github.com/repos/LibraData/market-pulse/contents/public/history.json?ref=main"
+$drillETL = Invoke-RestMethod -Uri "https://api.github.com/repos/LibraData/market-pulse/contents/src/etl.py?ref=main"
 [System.IO.File]::WriteAllBytes((Join-Path (Get-Location).Path "work\drill\history-before.json"), [Convert]::FromBase64String($drillHistory.content))
 [System.IO.File]::WriteAllBytes((Join-Path (Get-Location).Path "work\drill\etl-before.py"), [Convert]::FromBase64String($drillETL.content))
 Set-Content -LiteralPath .\work\drill\history-before-sha.txt -Value $drillHistory.sha -Encoding utf8
@@ -63,7 +63,7 @@ $drillHistory.sha
 
 ## 2. 故意搞坏一次
 
-在 GitHub 打开 [src/etl.py](https://github.com/dingyu001209-pixel/market-pulse/blob/main/src/etl.py)，点击铅笔编辑按钮。
+在 GitHub 打开 [src/etl.py](https://github.com/LibraData/market-pulse/blob/main/src/etl.py)，点击铅笔编辑按钮。
 
 在顶部文档字符串之后、`import argparse` 之前，单独加入下面这一行。必须放在顶层，不要缩进，也不要放在某个取数函数的 `try/except` 里。
 
@@ -77,7 +77,7 @@ raise RuntimeError("DRILL: intentional failure before fetching or writing data")
 
 ## 3. 看 CI 报红
 
-打开仓库的 [Actions](https://github.com/dingyu001209-pixel/market-pulse/actions)，找到这次提交对应的 `Update market pulse`。等待状态结束，再点击运行和 `update` 作业。
+打开仓库的 [Actions](https://github.com/LibraData/market-pulse/actions)，找到这次提交对应的 `Update market pulse`。等待状态结束，再点击运行和 `update` 作业。
 
 - [ ] 作业结论为 `failure`，不是仍在运行的黄色状态。
 - [ ] `Fetch and calculate candidate JSON` 显示失败。
@@ -94,7 +94,7 @@ raise RuntimeError("DRILL: intentional failure before fetching or writing data")
 
 ```powershell
 $drillBeforeSHA = (Get-Content -LiteralPath .\work\drill\history-before-sha.txt -Raw).Trim()
-$drillAfterSHA = (Invoke-RestMethod -Uri "https://api.github.com/repos/dingyu001209-pixel/market-pulse/contents/public/history.json?ref=main").sha
+$drillAfterSHA = (Invoke-RestMethod -Uri "https://api.github.com/repos/LibraData/market-pulse/contents/public/history.json?ref=main").sha
 if ($drillBeforeSHA -eq $drillAfterSHA) { Write-Output "PASS: 云端历史内容未变" } else { Write-Output "CHECK: 云端历史已变化，需要核对差异" }
 ```
 
