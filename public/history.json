@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "metadata": {
-    "data_date": "2026-10-22",
-    "updated_at": "2026-10-22T18:47:54+08:00",
-    "record_count": 9,
-    "consecutive_trading_days": 9,
+    "data_date": "2026-10-23",
+    "updated_at": "2026-10-23T18:45:58+08:00",
+    "record_count": 10,
+    "consecutive_trading_days": 10,
     "weights": {
       "strength": 0.3,
       "breadth": 0.25,
@@ -515,6 +515,63 @@
       "universe_count": 5576,
       "active_count": 5569,
       "turnover_yuan": 1541236459561.0,
+      "turnover_mean20_yuan": null,
+      "turnover_ratio20": null,
+      "sh_ma20": null,
+      "sources": {
+        "spot": "sina",
+        "date_reference": "A"
+      },
+      "freshness": {
+        "index_date_verified": true,
+        "stock_date_verified": false,
+        "note": "股票接口仅含时分秒；使用当日日线和上证报价交叉核验，不能逐股证明报价日期"
+      },
+      "methodology_version": "1.0"
+    },
+    {
+      "date": "2026-10-23",
+      "updated_at": "2026-10-23T18:45:58+08:00",
+      "score": 30.127,
+      "level": "偏暖",
+      "subscores": {
+        "strength": 44.97,
+        "breadth": 66.544,
+        "volume": null,
+        "position": 0.0
+      },
+      "score_complete": false,
+      "available_weight": 0.75,
+      "missing_reasons": {
+        "position": "前20个交易日的本地记录不足，按约定为0",
+        "volume": "缺少当日成交额、四指数方向或前20个交易日完整基准"
+      },
+      "sh_close": 3690.4753,
+      "index_changes": {
+        "sh000001": {
+          "name": "上证指数",
+          "pct_change": 0.887
+        },
+        "sz399001": {
+          "name": "深证成指",
+          "pct_change": 2.787
+        },
+        "sz399006": {
+          "name": "创业板指",
+          "pct_change": 4.16
+        },
+        "sh000300": {
+          "name": "沪深300",
+          "pct_change": 1.71
+        }
+      },
+      "index_median_pct": 2.2485,
+      "up": 4525,
+      "down": 909,
+      "flat": 137,
+      "universe_count": 5576,
+      "active_count": 5571,
+      "turnover_yuan": 1972443757617.0,
       "turnover_mean20_yuan": null,
       "turnover_ratio20": null,
       "sh_ma20": null,
