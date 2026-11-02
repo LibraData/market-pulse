@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "metadata": {
-    "data_date": "2026-10-30",
-    "updated_at": "2026-10-30T18:57:03+08:00",
-    "record_count": 15,
-    "consecutive_trading_days": 15,
+    "data_date": "2026-11-02",
+    "updated_at": "2026-11-02T19:11:22+08:00",
+    "record_count": 16,
+    "consecutive_trading_days": 16,
     "weights": {
       "strength": 0.3,
       "breadth": 0.25,
@@ -857,6 +857,64 @@
       "universe_count": 5576,
       "active_count": 5570,
       "turnover_yuan": 1687433215206.0,
+      "turnover_mean20_yuan": null,
+      "turnover_ratio20": null,
+      "sh_ma20": null,
+      "sources": {
+        "spot": "sina",
+        "date_reference": "A"
+      },
+      "freshness": {
+        "index_date_verified": true,
+        "stock_date_verified": false,
+        "note": "股票接口仅含时分秒；使用当日日线和上证报价交叉核验，不能逐股证明报价日期"
+      },
+      "methodology_version": "1.0"
+    },
+    {
+      "date": "2026-11-02",
+      "updated_at": "2026-11-02T19:11:22+08:00",
+      "score": 8.151,
+      "level": "中性",
+      "subscores": {
+        "strength": 27.17,
+        "breadth": null,
+        "volume": null,
+        "position": 0.0
+      },
+      "score_complete": false,
+      "available_weight": 0.5,
+      "missing_reasons": {
+        "breadth": "股票接口重试后仍失败，广度和成交额不可用",
+        "position": "前20个交易日的本地记录不足，按约定为0",
+        "volume": "缺少当日成交额、四指数方向或前20个交易日完整基准"
+      },
+      "sh_close": 3638.031,
+      "index_changes": {
+        "sh000001": {
+          "name": "上证指数",
+          "pct_change": 1.084
+        },
+        "sz399001": {
+          "name": "深证成指",
+          "pct_change": 1.633
+        },
+        "sz399006": {
+          "name": "创业板指",
+          "pct_change": 1.867
+        },
+        "sh000300": {
+          "name": "沪深300",
+          "pct_change": 0.788
+        }
+      },
+      "index_median_pct": 1.3585,
+      "up": null,
+      "down": null,
+      "flat": null,
+      "universe_count": null,
+      "active_count": null,
+      "turnover_yuan": null,
       "turnover_mean20_yuan": null,
       "turnover_ratio20": null,
       "sh_ma20": null,
